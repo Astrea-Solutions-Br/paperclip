@@ -122,6 +122,11 @@ const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
     icon: Cpu,
     comingSoon: true,
   },
+  ollama_local: {
+    label: "Ollama",
+    description: "Local Ollama adapter",
+    icon: Bot,
+  },
 };
 
 // ---------------------------------------------------------------------------
