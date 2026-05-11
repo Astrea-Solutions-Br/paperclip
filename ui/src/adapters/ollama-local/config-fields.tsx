@@ -1,32 +1,40 @@
 import type { AdapterConfigFieldsProps } from "../types";
 import { DraftInput, Field } from "../../components/agent-config-primitives";
-import { useMemo } from "react";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
 
+function valueOrConfig(
+  key: string,
+  config: Record<string, unknown>,
+  values: Record<string, unknown> | null,
+  isCreate: boolean,
+  fallback = "",
+): string {
+  if (isCreate && values?.[key] != null) return String(values[key]);
+  if (config[key] != null) return String(config[key]);
+  return fallback;
+}
+
 export function OllamaLocalConfigFields({
   isCreate,
   values,
-  set,
   config,
-  eff,
+  set,
   mark,
 }: AdapterConfigFieldsProps) {
+  const cfg = (config ?? {}) as Record<string, unknown>;
+  const vals = (values ?? {}) as Record<string, unknown>;
+
   return (
     <>
       <Field label="Ollama model" hint="Model name available in Ollama (e.g., llama3.2, codellama).">
         <DraftInput
-          value={
-            isCreate
-              ? values?.model ?? ""
-              : eff("adapterConfig", "model", String(config.model ?? "llama3.2"))
-          }
-          onCommit={(v) =>
-            isCreate
-              ? set!({ model: v })
-              : mark("adapterConfig", "model", v || undefined)
-          }
+          value={valueOrConfig("model", cfg, vals, isCreate, "llama3.2")}
+          onCommit={(v) => {
+            if (isCreate) set?.({ model: v } as Record<string, unknown>);
+            else mark("adapterConfig", "model", v || undefined);
+          }}
           immediate
           className={inputClass}
           placeholder="llama3.2"
@@ -35,20 +43,11 @@ export function OllamaLocalConfigFields({
 
       <Field label="Ollama URL" hint="Ollama API URL. Default: http://localhost:11434">
         <DraftInput
-          value={
-            isCreate
-              ? values?.ollamaUrl ?? ""
-              : eff(
-                  "adapterConfig",
-                  "ollamaUrl",
-                  String(config.ollamaUrl ?? "http://localhost:11434"),
-                )
-          }
-          onCommit={(v) =>
-            isCreate
-              ? set!({ ollamaUrl: v })
-              : mark("adapterConfig", "ollamaUrl", v || undefined)
-          }
+          value={valueOrConfig("ollamaUrl", cfg, vals, isCreate, "http://localhost:11434")}
+          onCommit={(v) => {
+            if (isCreate) set?.({ ollamaUrl: v } as Record<string, unknown>);
+            else mark("adapterConfig", "ollamaUrl", v || undefined);
+          }}
           immediate
           className={inputClass}
           placeholder="http://localhost:11434"
@@ -57,27 +56,12 @@ export function OllamaLocalConfigFields({
 
       <Field label="Temperature" hint="Sampling temperature (0.0 - 2.0). Default: 0.7">
         <DraftInput
-          value={
-            isCreate
-              ? typeof values?.temperature === "number"
-                ? String(values.temperature)
-                : ""
-              : eff(
-                  "adapterConfig",
-                  "temperature",
-                  typeof config.temperature === "number"
-                    ? String(config.temperature)
-                    : "0.7",
-                )
-          }
+          value={valueOrConfig("temperature", cfg, vals, isCreate, "0.7")}
           onCommit={(v) => {
             const num = parseFloat(v);
-            if (isCreate) {
-              set!({ temperature: Number.isFinite(num) ? num : 0.7 });
-            } else {
-              const final = v.trim() === "" ? undefined : Number.isFinite(num) ? num : 0.7;
-              mark("adapterConfig", "temperature", final);
-            }
+            const final = v.trim() === "" ? undefined : Number.isFinite(num) ? num : 0.7;
+            if (isCreate) set?.({ temperature: final } as Record<string, unknown>);
+            else mark("adapterConfig", "temperature", final);
           }}
           immediate
           className={inputClass}
@@ -87,29 +71,12 @@ export function OllamaLocalConfigFields({
 
       <Field label="Context window" hint="Number of context tokens (num_ctx). Default: 4096">
         <DraftInput
-          value={
-            isCreate
-              ? typeof values?.numCtx === "number"
-                ? String(values.numCtx)
-                : ""
-              : eff(
-                  "adapterConfig",
-                  "numCtx",
-                  typeof config.num_ctx === "number"
-                    ? String(config.num_ctx)
-                    : typeof config.numCtx === "number"
-                      ? String(config.numCtx)
-                      : "4096",
-                )
-          }
+          value={valueOrConfig("numCtx", cfg, vals, isCreate, "4096")}
           onCommit={(v) => {
             const num = parseInt(v, 10);
-            if (isCreate) {
-              set!({ numCtx: Number.isFinite(num) ? num : 4096 });
-            } else {
-              const final = v.trim() === "" ? undefined : Number.isFinite(num) ? num : 4096;
-              mark("adapterConfig", "numCtx", final);
-            }
+            const final = v.trim() === "" ? undefined : Number.isFinite(num) ? num : 4096;
+            if (isCreate) set?.({ numCtx: final } as Record<string, unknown>);
+            else mark("adapterConfig", "numCtx", final);
           }}
           immediate
           className={inputClass}
